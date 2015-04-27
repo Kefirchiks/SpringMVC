@@ -49,7 +49,7 @@ public class HelloController {
 
     HashMap<String, BigDecimal> currencies; // Saraksts ar valūtām + vērtībām
 
-    @RequestMapping("/calculate")
+    @RequestMapping("/")
     public String calculate(HttpServletRequest request, ModelMap map) {
         try {
             if (request.getParameter("bruto") != null && !"".equals(request.getParameter("bruto"))) {

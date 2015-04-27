@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="${cp}/resources/css/site.css"/>
     <script src="${cp}/resources/js/js.js"></script>
 </head>
-<form method="post" action="/calculate">
+<form method="post" action="/">
     <label for="bruto">Bruto alga:</label>
     <input type="number" id="bruto" name="bruto" pattern="[0-9]" min="360" step="0.01"/>
     <br>
