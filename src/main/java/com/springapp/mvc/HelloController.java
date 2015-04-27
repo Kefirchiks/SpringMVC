@@ -2,6 +2,8 @@ package com.springapp.mvc;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -9,14 +11,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.springframework.web.servlet.ModelAndView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,7 +47,7 @@ public class HelloController {
     private BigDecimal atvieglojumsBruto = null;
     private BigDecimal neto = null;
 
-    HashMap<String, String> currencies = null; // Saraksts ar valūtām + vērtībām
+    HashMap<String, BigDecimal> currencies; // Saraksts ar valūtām + vērtībām
 
     @RequestMapping("/calculate")
     public String calculate(HttpServletRequest request, ModelMap map) {
@@ -85,12 +87,17 @@ public class HelloController {
                     setNeto(bruto.subtract(social).subtract(IIN));
                 }
                 setNeto(getNeto().setScale(2, BigDecimal.ROUND_HALF_EVEN));
+
                 map.put("neto", getNeto() + "€");
-
-
                 // Atlasam valūtas un exchange rate no XMLa
                 parseXML();
                 map.put("currencies", currencies);
+
+                String currencyName = request.getParameter("valuta");
+                BigDecimal currencyValue = currencies.get(currencyName);
+                BigDecimal convertedValue = convertValue(currencyValue);
+                convertedValue = convertedValue.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+                map.put("convertedValue", convertedValue + " " + currencyName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,8 +115,8 @@ public class HelloController {
         }
     }
 
-
-    private void parseXML() throws IOException, SAXException, ParserConfigurationException {
+    @ModelAttribute("currenciesList")
+    public HashMap<String, BigDecimal> parseXML() throws IOException, SAXException, ParserConfigurationException {
 
         String uri = "http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
         URL url = new URL(uri);
@@ -121,7 +128,7 @@ public class HelloController {
         doc.getDocumentElement().normalize();
 
         NodeList nList = doc.getElementsByTagName("Cube");
-        currencies = new HashMap<String, String>();
+        currencies = new HashMap<String, BigDecimal>();
         for (int elem = 0; elem < nList.getLength(); elem++) {
 
             Node nNode = nList.item(elem);
@@ -130,13 +137,20 @@ public class HelloController {
 
                 Element eElement = (Element) nNode;
                 String currency = eElement.getAttribute("currency");
-                String rate = eElement.getAttribute("rate");
+                String rate = eElement.getAttribute("rate").replaceAll(",", "");
                 if (currency.isEmpty()) {
                     continue;
                 }
-                currencies.put(currency, rate);
+                BigDecimal rateValue = new BigDecimal(rate);
+                currencies.put(currency, rateValue);
             }
         }
+        return currencies;
+    }
+
+    private BigDecimal convertValue(BigDecimal rate) {
+        return getNeto().multiply(rate);
+
     }
 
 
