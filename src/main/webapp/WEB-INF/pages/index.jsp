@@ -19,19 +19,25 @@
     <label for="checbox">Pievienot atvieglojumus?</label>
     <input type="checkbox" id="checbox" name="checbox" onclick="checkInput(this);"/>
     <p id="newInput"></p>
-    <input type="submit" name="action" value="Aprēķināt"/>
-</form>
+    <input type="submit" name="action" value="Aprēķināt un konvertēt"/>
 
-<table>
-    <tr>
-        <td><h3>Neto alga: ${neto}</h3></td>
-        <td><select name="country">
-            <c:forEach items="${currencies}" var="currency">
-                <option value="${currency.value}">${currency.key}</option>
-            </c:forEach>
-        </select></td>
-    </tr>
-</table>
+    <table>
+        <tr>
+            <td><h3>Neto alga: ${neto}</h3></td>
+        </tr>
+        <tr>
+            <td>
+                <form:select name="valuta" path="currenciesList">
+                    <c:forEach items="${currenciesList}" var="currency">
+                        <option value="${currency.key}">${currency.key}</option>
+                    </c:forEach>
+                </form:select>
+            </td>
+            <td>Konvertētā valūta:</td>
+            <td>${convertedValue}</td>
+        </tr>
+    </table>
+</form>
 
 <br>
 <table>
